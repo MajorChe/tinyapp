@@ -5,12 +5,17 @@ const PORT = 8080;
 app.set("view engine", "ejs");
 
 const urlDatabase = {
-  one: "http://lighthouselabs.ca",
-  two: "http://www.google.com",
+  "one": "http://lighthouselabs.ca",
+  "two": "http://www.google.com",
 };
 
 app.get("/", (req, res) => {
-  res.send("Hello WOrld!");
+  res.send("Hello World!");
+});
+
+app.get("/urls",(req,res) => {
+  const templateVars = {urls:urlDatabase};
+  res.render('urls_index',templateVars);
 });
 
 app.get("/urls.json", (req, res) => {

@@ -12,8 +12,9 @@ const urlDatabase = {
   "two": "http://www.google.com",
 };
 
-const generateRandomString = () => {
-
+const generateRandomString = (longURL) => {
+  let result = (Math.random() + 1).toString(36).substring(7);
+  return result;
 }
 
 app.get("/", (req, res) => {
@@ -26,8 +27,11 @@ app.get("/urls",(req,res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body.longURL);  // Log the POST request body to the console
-  res.send("Ok");         // Respond with 'Ok' (we will replace this)
+  const shortedURL = generateRandomString(req.body.longURL)
+  urlDatabase[shortedURL] = req.body.longURL;
+  // const templateVars = {shortURL: shortedURL,longURL: req.body.longURL}
+  // res.render('urls_show',templateVars);  //can also be done this way instead of redirect
+  res.redirect(`/urls/${shortedURL}`);  
 });
 
 app.get("/urls/new", (req, res) => {

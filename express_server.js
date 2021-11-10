@@ -25,6 +25,16 @@ const generateRandomID = (email) =>{
   let result = (Math.random() + 1).toString(36).substring(8);
   return result;
 }
+const emailCheck = (emailID) => {
+  for(let i in users) {
+    for (let j in users[i]) {
+      if (users[i][j] === emailID) {
+        return false;
+      }
+    }
+  }
+  return true;
+};
 
 const urlDatabase = {
   "one": "http://lighthouselabs.ca",
@@ -46,14 +56,18 @@ app.get('/register',(req,res) => {
 
 app.post('/register', (req,res) => {
   const uID = generateRandomID(req.body.email);
-  const templateVars = {email: req.body.email, password: req.body.password}
-  users[uID] = {id: uID, email: templateVars.email, password: templateVars.password}
-  res.cookie('uID',uID);
-  res.redirect('/urls');
+  if (emailCheck(req.body.email)) {
+    const templateVars = {email: req.body.email, password: req.body.password}
+    users[uID] = {id: uID, email: templateVars.email, password: templateVars.password}
+    res.cookie('uID',uID);
+    res.redirect('/urls');
+  } else {
+    res.status(404).send("Oh uh, something went wrong");
+  }
 });
 
 app.get("/urls",(req,res) => {
-  const templateVars = {user: users[req.cookies['uID']]['email'],urls:urlDatabase};
+  const templateVars = {user: users[req.cookies['uID']],urls:urlDatabase};
   res.render('urls_index',templateVars);
 });
 
@@ -66,14 +80,13 @@ app.post("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const name = users[req.cookies['uID']]['email'];
-  const templateVars = {user: users[req.cookies['uID']]['email']}
+  const templateVars = {user: users[req.cookies['uID']]}
   res.render("urls_new",templateVars);
 });
 
 app.get('/urls/:shortURL',(req, res) => {
   const name = users[req.cookies['uID']]['email'];
-  const templateVars = {user: users[req.cookies['uID']]['email'], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
+  const templateVars = {user: users[req.cookies['uID']], shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   if(!templateVars.longURL) {
     res.redirect('/urls');
   } else{

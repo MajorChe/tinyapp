@@ -9,6 +9,22 @@ app.set("view engine", "ejs");
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
 
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "1234"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "5678"
+  }
+};
+const generateRandomID = (email) =>{
+  let result = (Math.random() + 1).toString(36).substring(8);
+  return result;
+}
 
 const urlDatabase = {
   "one": "http://lighthouselabs.ca",
@@ -22,6 +38,19 @@ const generateRandomString = (longURL) => {
 
 app.get("/", (req, res) => {
   res.send("Hello World!");
+});
+
+app.get('/register',(req,res) => {
+  res.render('register');
+});
+
+app.post('/register', (req,res) => {
+  const uID = generateRandomID(req.body.email);
+  const templateVars = {email: req.body.email, password: req.body.password}
+  users[uID] = {id: uID, email: templateVars.email, password: templateVars.password}
+  res.cookie('uID',uID)
+  console.log(users);
+  res.redirect('/urls');
 });
 
 app.get("/urls",(req,res) => {

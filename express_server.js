@@ -1,11 +1,14 @@
 const express = require("express");
 const app = express();
 const PORT = 8080;
+const cookieParser = require('cookie-parser');
+app.use(cookieParser())
 
 app.set("view engine", "ejs");
 
 const bodyParser = require("body-parser");
 app.use(bodyParser.urlencoded({extended: true}));
+
 
 const urlDatabase = {
   "one": "http://lighthouselabs.ca",
@@ -52,13 +55,17 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+app.post('/login', (req,res) => {
+  res.cookie('username',req.body.username);
+  res.redirect('/urls');
+});
+
 app.post("/urls/:shortURL/delete", (req,res) => {
   delete urlDatabase[req.params.shortURL];
   res.redirect('/urls');
 });
 
 app.post("/urls/:shortURL",(req,res) => {
-  //const templateVars = {shortURL: req.params.shortURL, longURL: req.body.longURL}
   urlDatabase[req.params.shortURL] = req.body.longURL;
   res.redirect('/urls');
 });

@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const PORT = 8080;
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
+const salt = bcrypt.genSaltSync(10);
 app.use(cookieParser());
 
 app.set("view engine", "ejs");
@@ -13,12 +15,12 @@ const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "1234",
+    password: bcrypt.hashSync("1234", salt),
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "5678",
+    password: bcrypt.hashSync("5678", salt),
   },
 };
 
@@ -73,12 +75,13 @@ app.post("/register", (req, res) => {
   const uID = generateRandomID(req.body.email);
   const checkker = emailCheck(req.body.email);
   if (!checkker) {
-    const templateVars = { email: req.body.email, password: req.body.password };
     users[uID] = {
       id: uID,
-      email: templateVars.email,
-      password: templateVars.password,
+      email: req.body.email,
     };
+    hashedPass = bcrypt.hash(req.body.password, salt).then((result) => {
+      users[uID]["password"] = result;
+    });
     res.cookie("uID", uID);
     res.redirect("/urls");
   } else {
@@ -147,11 +150,16 @@ app.post("/login", (req, res) => {
   const checkker = emailCheck(req.body.email);
   if (!checkker) {
     res.status(404).send("User not found");
-  } else if (checkker["password"] !== req.body.password) {
-    res.status(404).send("Password Incorrect");
+  } else {
+    bcrypt.compare(req.body.password, checkker["password"]).then((result) => {
+      if (result) {
+        res.cookie("uID", checkker["id"]);
+        res.redirect("/urls");
+      } else {
+        res.status(404).send("incorrect Password");
+      }
+    });
   }
-  res.cookie("uID", checkker["id"]);
-  res.redirect("/urls");
 });
 
 app.post("/logout", (req, res) => {

@@ -9,6 +9,32 @@
   <title>TinyApp</title>
 </head>
 <body>
+  <header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-success">
+      <a class="navbar-brand" href="/urls">TinyApp</a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbarNavAltMarkup"
+        aria-controls="navbarNavAltMarkup"
+        aria-expanded="false"
+        aria-label="Toggle navigation"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/urls">My URLs</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/urls/new">Create New URL</a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+  </header>
   <section class="vh-100" style="background-color: #f6f7f8;">
     <form method="post" action="/register">
     <div class="container py-5 h-100">

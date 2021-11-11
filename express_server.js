@@ -48,10 +48,13 @@ const emailCheck = (emailID) => {
   return false;
 };
 
-// const urlDatabase = {
-//   "one": "http://lighthouselabs.ca",
-//   "two": "http://www.google.com",
-// };
+const urlsForUrl = (id, obj) => {
+  let arr = {};
+  for (let url in obj) {
+    if (obj[url]["userID"] === id) arr[url] = urlDatabase[url];
+  }
+  return arr;
+};
 
 const generateRandomString = (longURL) => {
   let result = (Math.random() + 1).toString(36).substring(7);
@@ -114,14 +117,20 @@ app.get("/urls/new", (req, res) => {
 
 app.get("/urls/:shortURL", (req, res) => {
   if (!urlDatabase[req.params.shortURL]) {
-    res.status(404).send("Page not found");
+    res.redirect("/urls");
   }
   const longU = urlDatabase[req.params.shortURL]["longURL"];
+  const id = req.cookies["uID"];
+  const findUrl = urlsForUrl(id, urlDatabase);
   const templateVars = {
     user: users[req.cookies["uID"]],
-    shortURL: req.params.shortURL,
-    longURL: longU,
   };
+  if (findUrl[req.params.shortURL]) {
+    if (findUrl[req.params.shortURL]["userID"] === req.cookies["uID"]) {
+      templateVars["shortURL"] = req.params.shortURL;
+      templateVars["longURL"] = longU;
+    }
+  }
   if (!templateVars.longURL) {
     res.redirect("/urls");
   } else {
@@ -151,20 +160,32 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  delete urlDatabase[req.params.shortURL];
-  res.redirect("/urls");
+  const id = req.cookies["uID"];
+  const findUrl = urlsForUrl(id, urlDatabase);
+  if (findUrl[req.params.shortURL]) {
+    if (findUrl[req.params.shortURL]["userID"] === req.cookies["uID"]) {
+      delete urlDatabase[req.params.shortURL];
+      res.redirect("/urls");
+    }
+  } else {
+    res.status(404).send("Please login with right user to delete");
+  }
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL] = {
-    longURL: req.body.longURL,
-    userID: req.cookies["uID"],
-  };
-  res.redirect("/urls");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+  const id = req.cookies["uID"];
+  const findUrl = urlsForUrl(id, urlDatabase);
+  if (findUrl[req.params.shortURL]) {
+    if (findUrl[req.params.shortURL]["userID"] === req.cookies["uID"]) {
+      urlDatabase[req.params.shortURL] = {
+        longURL: req.body.longURL,
+        userID: req.cookies["uID"],
+      };
+      res.redirect("/urls");
+    }
+  } else {
+    res.send("error");
+  }
 });
 
 app.listen(PORT, () => {

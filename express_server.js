@@ -29,11 +29,11 @@ const emailCheck = (emailID) => {
   for(let i in users) {
     for (let j in users[i]) {
       if (users[i][j] === emailID) {
-        return false;
+        return users[i];
       }
     }
   }
-  return true;
+  return false;
 };
 
 const urlDatabase = {
@@ -56,14 +56,27 @@ app.get('/register',(req,res) => {
 
 app.post('/register', (req,res) => {
   const uID = generateRandomID(req.body.email);
-  if (emailCheck(req.body.email)) {
+  const checkker = emailCheck(req.body.email);
+  if(!checkker) {
     const templateVars = {email: req.body.email, password: req.body.password}
     users[uID] = {id: uID, email: templateVars.email, password: templateVars.password}
     res.cookie('uID',uID);
     res.redirect('/urls');
   } else {
-    res.status(404).send("Oh uh, something went wrong");
+    res.status(404).send("email already exists");
   }
+  // if (emailCheck(req.body.email)) {
+  //   const templateVars = {email: req.body.email, password: req.body.password}
+  //   users[uID] = {id: uID, email: templateVars.email, password: templateVars.password}
+  //   res.cookie('uID',uID);
+  //   res.redirect('/urls');
+  // } else {
+  //   res.status(404).send("Oh uh, something went wrong");
+  // }
+});
+
+app.get('/login',(req,res) => {
+    res.render('login');
 });
 
 app.get("/urls",(req,res) => {
@@ -100,7 +113,13 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.post('/login', (req,res) => {
-  //res.cookie('username',req.body.username);
+  const checkker = emailCheck(req.body.email);
+  if(!checkker) {
+    res.status(404).send('User not found')
+  } else if (checkker['password'] !== req.body.password) {
+    res.status(404).send('Password Incorrect');
+  }
+  res.cookie('uID',checkker['id']);
   res.redirect('/urls');
 });
 

@@ -15,8 +15,8 @@
       </ul>
       <% if(!user) { %>
         <form class="form-inline" method="post" action="/login">
-          <input class="form-control mr-sm-2" type="text" name="username">
-          <button class="btn btn-outline-dark my-2 my-sm-0" type="submit">Login</button>
+          <a href="/register"><button class="btn btn-outline-dark my-2 my-sm-0" style="margin-right: 10px;" type="button">Register</button></a>
+          <a href="/login"><button class="btn btn-outline-dark my-2 my-sm-0" type="button">Login</button></a>
         </form>
       <% } else { %>
         <form class="form-inline" method="post" action="/logout">

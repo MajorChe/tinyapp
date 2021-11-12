@@ -101,7 +101,7 @@ app.get("/urls", (req, res) => {
     return urlObj;
   };
   const idone = req.session.id;
-  const result1 = func(idone, urlDatabase);
+  const result1 = func(idone, urlDatabase); // result1 is an object conatining userid corresponding to cookie
   const templateVars = { user: users[idone], urls: result1 };
   res.render("urls_index", templateVars);
 });
@@ -117,10 +117,11 @@ app.get("/urls/:shortURL", (req, res) => {
   }
   const longU = urlDatabase[req.params.shortURL]["longURL"];
   const id = req.session.id;
-  const findUrl = urlsForUrl(id, urlDatabase);
+  const findUrl = urlsForUrl(id, urlDatabase); // findUrl is an object that contains all the userids matched from the cookie
   const templateVars = {
     user: users[req.session.id],
   };
+  // Check if the short url corresponds to the logged in user
   if (findUrl[req.params.shortURL]) {
     if (findUrl[req.params.shortURL]["userID"] === req.session.id) {
       templateVars["shortURL"] = req.params.shortURL;
@@ -143,7 +144,7 @@ app.get("/u/:shortURL", (req, res) => {
 
 app.post("/register", (req, res) => {
   const uID = generateRandomString(req.body.email);
-  const checkker = emailCheck(req.body.email);
+  const checkker = emailCheck(req.body.email); //checkker is true or false (check if it contains emailid)
   if (!checkker) {
     users[uID] = {
       id: uID,
@@ -198,6 +199,7 @@ app.post("/logout", (req, res) => {
 app.post("/urls/:shortURL/delete", (req, res) => {
   const id = req.session.id;
   const findUrl = urlsForUrl(id, urlDatabase);
+  //check to see if the user is logged in or not
   if (findUrl[req.params.shortURL]) {
     if (findUrl[req.params.shortURL]["userID"] === req.session.id) {
       delete urlDatabase[req.params.shortURL];

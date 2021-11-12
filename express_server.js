@@ -19,6 +19,8 @@ app.use(
   })
 );
 
+//Dummy user object that contains manually inputted users----------------------
+
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -32,6 +34,8 @@ const users = {
   },
 };
 
+//Database object for manually storing shorturl and longurl with shorturl being the key-------
+
 const urlDatabase = {
   b6UTxQ: {
     longURL: "https://www.tsn.ca",
@@ -43,10 +47,15 @@ const urlDatabase = {
   },
 };
 
-const generateRandomID = (email) => {
-  let result = (Math.random() + 1).toString(36).substring(8);
+//Helper function to generate a random string-----------------------------
+
+const generateRandomString = (longURL) => {
+  let result = (Math.random() + 1).toString(36).substring(7);
   return result;
 };
+
+//Helper function to check if the user database contains the email id passed as a parameter
+
 const emailCheck = (emailID) => {
   for (let i in users) {
     for (let j in users[i]) {
@@ -58,18 +67,17 @@ const emailCheck = (emailID) => {
   return false;
 };
 
+//Helper function that returns an object of userID's using id from the cookie and the database object
+
 const urlsForUrl = (id, obj) => {
-  let arr = {};
+  let urlObj = {};
   for (let url in obj) {
-    if (obj[url]["userID"] === id) arr[url] = urlDatabase[url];
+    if (obj[url]["userID"] === id) urlObj[url] = urlDatabase[url];
   }
-  return arr;
+  return urlObj;
 };
 
-const generateRandomString = (longURL) => {
-  let result = (Math.random() + 1).toString(36).substring(7);
-  return result;
-};
+// All get routes start here-----------------------------------
 
 app.get("/register", (req, res) => {
   res.render("register");
@@ -79,25 +87,12 @@ app.get("/login", (req, res) => {
   res.render("login");
 });
 
-app.post("/register", (req, res) => {
-  const uID = generateRandomID(req.body.email);
-  const checkker = emailCheck(req.body.email);
-  if (!checkker) {
-    users[uID] = {
-      id: uID,
-      email: req.body.email,
-    };
-    hashedPass = bcrypt.hash(req.body.password, salt).then((result) => {
-      users[uID]["password"] = result;
-    });
-    req.session.id = uID;
-    res.redirect("/urls");
-  } else {
-    res.status(404).send("email already exists");
-  }
+app.get("/", (req, res) => {
+  res.redirect("/urls");
 });
 
 app.get("/urls", (req, res) => {
+  //function that retuns all the long urls for a respective user
   const func = (id, obj) => {
     let urlObj = {};
     for (let url in obj) {
@@ -111,16 +106,8 @@ app.get("/urls", (req, res) => {
   res.render("urls_index", templateVars);
 });
 
-app.post("/urls", (req, res) => {
-  const shortedURL = generateRandomString(req.body.longURL);
-  const id = req.session.id;
-  urlDatabase[shortedURL] = { longURL: req.body.longURL, userID: id };
-  res.redirect(`/urls/${shortedURL}`);
-});
-
 app.get("/urls/new", (req, res) => {
   const templateVars = { user: users[req.session.id] };
-  console.log(req.session.id);
   res.render("urls_new", templateVars);
 });
 
@@ -152,17 +139,52 @@ app.get("/u/:shortURL", (req, res) => {
   res.redirect(longURL);
 });
 
+//All post routes start here-------------------------------
+
+app.post("/register", (req, res) => {
+  const uID = generateRandomString(req.body.email);
+  const checkker = emailCheck(req.body.email);
+  if (!checkker) {
+    users[uID] = {
+      id: uID,
+      email: req.body.email,
+    };
+    hashedPass = bcrypt.hash(req.body.password, salt).then((result) => {
+      users[uID]["password"] = result;
+    });
+    req.session.id = uID;
+    res.redirect("/urls");
+  } else {
+    res
+      .status(404)
+      .send(
+        "email already exists. Please <a href = '/register'>register here</a> or <a href = '/login'>login here</a>"
+      );
+  }
+});
+
+app.post("/urls", (req, res) => {
+  const shortedURL = generateRandomString(req.body.longURL);
+  const id = req.session.id;
+  urlDatabase[shortedURL] = { longURL: req.body.longURL, userID: id };
+  res.redirect(`/urls/${shortedURL}`);
+});
+
 app.post("/login", (req, res) => {
   const checkker = emailCheck(req.body.email);
   if (!checkker) {
-    res.status(404).send("User not found");
+    res
+      .status(404)
+      .send("User not found. Please <a href = '/login'>try here</a>");
   } else {
     bcrypt.compare(req.body.password, checkker["password"]).then((result) => {
       if (result) {
         req.session.id = checkker["id"];
         res.redirect("/urls");
       } else {
-        res.status(404).send("incorrect Password");
+        res
+          .status(404)
+          .send("incorrect Password. Please <a href = '/login'>try here</a>");
       }
     });
   }
